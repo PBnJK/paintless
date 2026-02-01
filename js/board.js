@@ -1,6 +1,8 @@
 /* flavorless
- * Main script
+ * Drawing board script
  */
+
+"use strict";
 
 const CANVAS_WIDTH = 288;
 const CANVAS_HEIGHT = 48;
@@ -11,29 +13,59 @@ const CANVAS_HEIGHT = 48;
  * Wrangles all of the image data & painting functionality together
  */
 class Board {
-  /** @type {HTMLPreElement} */
+  /**
+   * The main board pre tag
+   * @type {HTMLPreElement}
+   */
   #board = null;
 
-  /** @type {Selection} */
+  /**
+   * Selection inside the pre tag
+   * @type {Selection}
+   */
   #boardSelection = null;
 
-  /** @type {string[]} */
+  /**
+   * Image data, as an array of characters
+   * @type {string[]}
+   */
   #data = [];
 
-  /** @type {number} */
+  /**
+   * Width of a single monospaced character inside a pre tag
+   * @type {number}
+   */
   #charWidth = 0;
 
-  /** @type {number} */
+  /**
+   * Height of a single monospaced character inside a pre tag
+   * @type {number}
+   */
   #charHeight = 0;
 
-  /** @type {boolean} */
+  /**
+   * If we're currently drawing
+   * @type {boolean}
+   */
   #isDrawing = false;
 
-  /** @type {number} */
+  /**
+   * Old X-coordinate for continuous drawing
+   * @type {number}
+   */
   #oldX = 0;
 
-  /** @type {number} */
+  /**
+   * Old Y-coordinate for continuous drawing
+   * @type {number}
+   */
   #oldY = 0;
+
+  /**
+   * The current brush
+   * @type {Brush}
+   */
+  #brush = null;
 
   constructor() {
     this.#initBoard();
@@ -64,9 +96,8 @@ class Board {
    * @param {number} y1 Starting point Y-coordinate
    * @param {number} x2 Ending point X-coordinate
    * @param {number} y2 Ending point Y-coordinate
-   * @param {string} char Character used for drawing
    */
-  putLine(x1, y1, x2, y2, char) {
+  putLine(x1, y1, x2, y2) {
     const dx = Math.abs(x2 - x1);
     const dy = Math.abs(y2 - y1);
     const sx = x1 < x2 ? 1 : -1;
@@ -74,7 +105,7 @@ class Board {
 
     let error = dx + dy;
     while (true) {
-      this.putChar(x1, y1, char);
+      this.#brush.draw(x1, y1, this);
 
       const epsilon = 2 * error;
       if (epsilon >= dy) {
@@ -96,12 +127,11 @@ class Board {
     }
   }
 
-  /* Initializes the drawing board */
-  #initBoard() {
-    this.#board = document.getElementById("board");
-    this.#boardSelection = document.getSelection();
-
-    /* Initialize with all blank spots */
+  /**
+   * Clears the board
+   */
+  clear() {
+    this.#data = [];
     for (let j = 0; j < CANVAS_HEIGHT; ++j) {
       for (let i = 0; i < CANVAS_WIDTH; ++i) {
         this.#data.push(" ");
@@ -113,6 +143,38 @@ class Board {
     }
 
     this.blit();
+  }
+
+  /**
+   * Sets the current brush;
+   * @param {Brush} brush
+   */
+  setBrush(brush) {
+    this.#brush = brush;
+  }
+
+  /**
+   * Returns the image dimensions
+   * @returns {Array<number>}
+   */
+  getDimensions() {
+    return [this.#board.offsetWidth, this.#board.offsetHeight];
+  }
+
+  /**
+   * Returns the board data
+   * @returns {string[]}
+   */
+  getData() {
+    return this.#data;
+  }
+
+  /* Initializes the drawing board */
+  #initBoard() {
+    this.#board = document.getElementById("board");
+    this.#boardSelection = document.getSelection();
+
+    this.clear();
 
     /* Calculate the dimensions of a single character (monospace font) */
     this.#charWidth = this.#board.offsetWidth / CANVAS_WIDTH;
@@ -129,7 +191,7 @@ class Board {
         const x = Math.floor(e.offsetX / this.#charWidth);
         const y = Math.floor(e.offsetY / this.#charHeight);
 
-        this.putLine(this.#oldX, this.#oldY, x, y, "█");
+        this.putLine(this.#oldX, this.#oldY, x, y);
         this.blit();
 
         this.#oldX = x;
@@ -142,7 +204,7 @@ class Board {
       this.#oldX = Math.floor(e.offsetX / this.#charWidth);
       this.#oldY = Math.floor(e.offsetY / this.#charHeight);
 
-      this.putChar(this.#oldX, this.#oldY, "█");
+      this.#brush.draw(this.#oldX, this.#oldY, this);
       this.blit();
 
       return false;
@@ -157,10 +219,3 @@ class Board {
     });
   }
 }
-
-/* Entry-point */
-function main() {
-  const board = new Board();
-}
-
-main();

@@ -5,20 +5,49 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Paintless</title>
 
-    <script src="script.js" defer></script>
+    <script src="js/board.js"></script>
+    <script src="js/palette.js"></script>
+
+    <script src="js/brushes/brush.js"></script>
+    <script src="js/brushes/pencil.js"></script>
+    <script src="js/brushes/eraser.js"></script>
+
+    <script src="js/script.js" defer></script>
   </head>
   <body>
     <fieldset>
       <legend>Drawing Board</legend>
       <table border>
-        <td>
-          <pre id="board"></pre>
-        </td>
+        <tbody>
+          <tr>
+            <td>
+              <button id="btn-clear-board" type="button">Clear</button>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <pre id="board"></pre>
+            </td>
+          </tr>
+        </tbody>
       </table>
     </fieldset>
     <fieldset>
       <legend>Palette</legend>
-      <p></p>
+      <fieldset>
+        <legend>Brushes</legend>
+        <table border>
+          <tbody>
+            <tr id="brush-table"></tr>
+          </tbody>
+        </table>
+      </fieldset>
+      <fieldset>
+        <legend>Parameters</legend>
+        <table border>
+          <tbody id="param-table"></tbody>
+        </table>
+      </fieldset>
     </fieldset>
   </body>
 </html>
