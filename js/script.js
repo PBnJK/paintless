@@ -30,20 +30,25 @@ function hookButtonClear() {
 function createBrushes() {
   createBrushPencil();
   createBrushEraser();
+  createBrushPaintBucket();
 }
 
 /* Creates a pencil brush */
 function createBrushPencil() {
   const pencil = new PencilBrush();
   addBrush(pencil);
-
-  board.setBrush(pencil);
 }
 
 /* Creates an eraser brush */
 function createBrushEraser() {
   const eraser = new EraserBrush();
   addBrush(eraser);
+}
+
+/* Creates a paint bucket brush */
+function createBrushPaintBucket() {
+  const paintBucket = new PaintBucketBrush();
+  addBrush(paintBucket);
 }
 
 /* Adds a brush to the palette */

@@ -79,7 +79,49 @@ class Board {
    * @param {string} char Character used for drawing
    */
   putChar(x, y, char) {
-    this.#data[x + y * CANVAS_WIDTH + y] = char;
+    this.#data[this.xyToOffset(x, y)] = char;
+  }
+
+  /**
+   * Puts a character at the given offset
+   *
+   * @param {number} offset Offset
+   * @param {string} char Character used for drawing
+   */
+  putCharAtOffset(offset, char) {
+    return (this.#data[offset] = char);
+  }
+
+  /**
+   * Returns the character at the given coordinate
+   *
+   * @param {number} x X-coordinate
+   * @param {number} y Y-coordinate
+   * @returns {string}
+   */
+  getChar(x, y) {
+    return this.#data[this.xyToOffset(x, y)];
+  }
+
+  /**
+   * Returns the character at the given offset
+   *
+   * @param {number} offset Offset
+   * @returns {string}
+   */
+  getCharAtOffset(offset) {
+    return this.#data[offset];
+  }
+
+  /**
+   * Converts an XY coordinate to an offset into the data array
+   *
+   * @param {number} x X-coordinate
+   * @param {number} y Y-coordinate
+   * @returns {number} Offset
+   */
+  xyToOffset(x, y) {
+    return x + y * CANVAS_WIDTH + y;
   }
 
   /**

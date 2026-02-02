@@ -17,6 +17,7 @@ class Brush {
    */
   constructor(name) {
     this.name = name;
+    this.element = this.buildPaletteElement();
   }
 
   /**
@@ -41,7 +42,16 @@ class Brush {
     throw new Error("Abstract method 'buildPaletteElement' not implemented");
   }
 
-  getParam(key) {}
+  /**
+   * Updates a parameter
+   *
+   * @abstract
+   * @param {string} key Parameter key
+   * @param {any} value Parameter value
+   */
+  setParam(key, value) {
+    throw new Error("Abstract method 'setParam' not implemented");
+  }
 
   /**
    * Returns the name of the brush
@@ -49,5 +59,13 @@ class Brush {
    */
   getName() {
     return this.name;
+  }
+
+  /**
+   * Returns the palette element
+   * @returns {HTMLDivElement}
+   */
+  getElement() {
+    return this.element.getElement();
   }
 }
