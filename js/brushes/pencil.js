@@ -4,6 +4,11 @@
 
 "use strict";
 
+const CHAR_LIGHT_SHADE = "\u2591"; /* ░ */
+const CHAR_MEDIUM_SHADE = "\u2592"; /* ▒ */
+const CHAR_DARK_SHADE = "\u2593"; /* ▓ */
+const CHAR_FULL_BLOCK = "\u2588"; /* █ */
+
 /**
  * The pencil brush class
  */
@@ -13,6 +18,12 @@ class PencilBrush extends Brush {
    * @type {number}
    */
   #size = 0;
+
+  /**
+   * The "brush" (character)
+   * @type {string}
+   */
+  #brush = CHAR_FULL_BLOCK;
 
   constructor() {
     super("Pencil");
@@ -34,7 +45,7 @@ class PencilBrush extends Brush {
           continue;
         }
 
-        board.putChar(actualX, actualY, "█");
+        board.putChar(actualX, actualY, this.#brush);
       }
     }
   }
@@ -42,6 +53,11 @@ class PencilBrush extends Brush {
   buildPaletteElement() {
     const paletteElement = new PaletteElement(this);
     paletteElement.addNumberParam("size", 1, 32);
+    paletteElement.addColorPickerParam(
+      "brush",
+      [CHAR_FULL_BLOCK, CHAR_DARK_SHADE, CHAR_MEDIUM_SHADE, CHAR_LIGHT_SHADE],
+      true,
+    );
 
     return paletteElement;
   }
@@ -50,6 +66,10 @@ class PencilBrush extends Brush {
     switch (key) {
       case "size":
         this.#size = value;
+        break;
+      case "brush":
+        this.#brush = value;
+        break;
     }
   }
 }

@@ -9,12 +9,6 @@
  */
 class PaintBucketBrush extends Brush {
   /**
-   * Size of the brush
-   * @type {number}
-   */
-  #size = 0;
-
-  /**
    * Fill character
    * @type {string}
    */
@@ -45,15 +39,17 @@ class PaintBucketBrush extends Brush {
   buildPaletteElement() {
     const paletteElement = new PaletteElement(this);
     paletteElement.addNumberParam("size", 1, 32);
+    paletteElement.addColorPickerParam(
+      "color",
+      [CHAR_FULL_BLOCK, CHAR_DARK_SHADE, CHAR_MEDIUM_SHADE, CHAR_LIGHT_SHADE],
+      true,
+    );
 
     return paletteElement;
   }
 
   setParam(key, value) {
     switch (key) {
-      case "size":
-        this.#size = value;
-        break;
       case "color":
         this.#fillCharacter = value;
         break;
