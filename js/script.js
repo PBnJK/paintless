@@ -14,34 +14,41 @@ function main() {
 
 /* Creates brushes */
 function createBrushes() {
-  createBrushPencil();
-  createBrushEraser();
-  createBrushPaintBucket();
-  createBrushText();
+  createPencilBrush();
+  createEraserBrush();
+  createPaintBucketBrush();
+  createTextBrush();
+  createStampBrush();
 }
 
 /* Creates a pencil brush */
-function createBrushPencil() {
+function createPencilBrush() {
   const pencil = new PencilBrush();
   addBrush(pencil);
 }
 
 /* Creates an eraser brush */
-function createBrushEraser() {
+function createEraserBrush() {
   const eraser = new EraserBrush();
   addBrush(eraser);
 }
 
 /* Creates a paint bucket brush */
-function createBrushPaintBucket() {
+function createPaintBucketBrush() {
   const paintBucket = new PaintBucketBrush();
   addBrush(paintBucket);
 }
 
 /* Creates a text brush */
-function createBrushText() {
+function createTextBrush() {
   const text = new TextBrush();
   addBrush(text);
+}
+
+/* Creates a stamp brush */
+function createStampBrush() {
+  const stamp = new StampBrush();
+  addBrush(stamp);
 }
 
 /* Adds a brush to the palette */

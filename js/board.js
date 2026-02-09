@@ -68,6 +68,14 @@ const DEFAULT_DRAWING = `                                                       
  */
 class Board {
   /**
+   * @callback DrawLineCallback Callback used when drawing line
+   *
+   * @param {number} x
+   * @param {number} y
+   * @param {Board} board
+   */
+
+  /**
    * The main board pre tag
    * @type {HTMLPreElement}
    */
@@ -258,16 +266,41 @@ class Board {
    * @param {number} y1 Starting point Y-coordinate
    * @param {number} x2 Ending point X-coordinate
    * @param {number} y2 Ending point Y-coordinate
+   * @param {DrawLineCallback} callback Drawing callback
    */
-  putLine(x1, y1, x2, y2) {
+  putLine(x1, y1, x2, y2, callback) {
+    if (x1 < 0) {
+      x1 = 0;
+    } else if (x1 >= CANVAS_WIDTH) {
+      x1 = CANVAS_WIDTH - 1;
+    }
+
+    if (x2 < 0) {
+      x2 = 0;
+    } else if (x2 >= CANVAS_WIDTH) {
+      x2 = CANVAS_WIDTH - 1;
+    }
+
+    if (y1 < 0) {
+      y1 = 0;
+    } else if (y1 >= CANVAS_HEIGHT) {
+      y1 = CANVAS_HEIGHT - 1;
+    }
+
+    if (y2 < 0) {
+      y2 = 0;
+    } else if (y2 >= CANVAS_HEIGHT) {
+      y2 = CANVAS_HEIGHT - 1;
+    }
+
     const dx = Math.abs(x2 - x1);
-    const dy = Math.abs(y2 - y1);
+    const dy = -Math.abs(y2 - y1);
     const sx = x1 < x2 ? 1 : -1;
     const sy = y1 < y2 ? 1 : -1;
 
     let error = dx + dy;
     while (true) {
-      this.#brush.draw(x1, y1, this);
+      callback(x1, y1, this);
 
       const epsilon = 2 * error;
       if (epsilon >= dy) {
@@ -357,7 +390,15 @@ class Board {
       this.#updateBoardInfo();
 
       if (this.#isDrawing) {
-        this.putLine(this.#oldX, this.#oldY, this.#mouseX, this.#mouseY);
+        this.putLine(
+          this.#oldX,
+          this.#oldY,
+          this.#mouseX,
+          this.#mouseY,
+          (x, y, board) => {
+            this.#brush.draw(x, y, board);
+          },
+        );
         this.blit();
 
         this.#oldX = this.#mouseX;

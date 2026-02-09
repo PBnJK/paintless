@@ -25,6 +25,7 @@ class TextBrush extends Brush {
    * @type {WrapType}
    */
   #wrap = WrapType.NONE;
+
   /**
    * Maximum width of text
    * @type {number}
