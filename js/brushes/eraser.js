@@ -37,6 +37,8 @@ class EraserBrush extends Brush {
         board.putChar(actualX, actualY, " ");
       }
     }
+
+    return "erased stuff";
   }
 
   buildPaletteElement() {

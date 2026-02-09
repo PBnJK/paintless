@@ -9,21 +9,7 @@ const palette = new Palette();
 
 /* Entry-point */
 function main() {
-  hookButtons();
   createBrushes();
-}
-
-/* Hooks up button events */
-function hookButtons() {
-  hookButtonClear();
-}
-
-/* Hooks up clear board button */
-function hookButtonClear() {
-  const buttonClear = document.getElementById("btn-clear-board");
-  buttonClear.addEventListener("click", () => {
-    board.clear();
-  });
 }
 
 /* Creates brushes */
@@ -31,6 +17,7 @@ function createBrushes() {
   createBrushPencil();
   createBrushEraser();
   createBrushPaintBucket();
+  createBrushText();
 }
 
 /* Creates a pencil brush */
@@ -49,6 +36,12 @@ function createBrushEraser() {
 function createBrushPaintBucket() {
   const paintBucket = new PaintBucketBrush();
   addBrush(paintBucket);
+}
+
+/* Creates a text brush */
+function createBrushText() {
+  const text = new TextBrush();
+  addBrush(text);
 }
 
 /* Adds a brush to the palette */

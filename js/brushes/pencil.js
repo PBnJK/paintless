@@ -48,6 +48,8 @@ class PencilBrush extends Brush {
         board.putChar(actualX, actualY, this.#brush);
       }
     }
+
+    return "penciled down";
   }
 
   buildPaletteElement() {

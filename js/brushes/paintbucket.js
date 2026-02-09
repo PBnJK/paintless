@@ -12,7 +12,7 @@ class PaintBucketBrush extends Brush {
    * Fill character
    * @type {string}
    */
-  #fillCharacter = "#";
+  #fillCharacter = CHAR_FULL_BLOCK;
 
   constructor() {
     super("Paint Bucket");
@@ -20,20 +20,43 @@ class PaintBucketBrush extends Brush {
 
   draw(x, y, board) {
     const c = board.getChar(x, y);
+    if (c === this.#fillCharacter) {
+      return "nothing to fill";
+    }
+
     const stack = [board.xyToOffset(x, y)];
+
+    let replaceNumber = 0;
 
     while (stack.length) {
       const n = stack.pop();
       if (board.getCharAtOffset(n) === c) {
-        console.log(n);
         board.putCharAtOffset(n, this.#fillCharacter);
+        ++replaceNumber;
 
-        stack.push(n - 1);
-        stack.push(n + 1);
-        stack.push(n + CANVAS_WIDTH + 1);
-        stack.push(n - CANVAS_WIDTH - 1);
+        const left = n - 1;
+        if (left >= 0) {
+          stack.push(left);
+        }
+
+        const right = n + 1;
+        if (right <= MAX_OFFSET) {
+          stack.push(right);
+        }
+
+        const above = n - CANVAS_WIDTH - 1;
+        if (above >= 0) {
+          stack.push(above);
+        }
+
+        const below = n + CANVAS_WIDTH + 1;
+        if (below <= MAX_OFFSET) {
+          stack.push(below);
+        }
       }
     }
+
+    return `filled ${replaceNumber} '${c}' characters with '${this.#fillCharacter}' characters`;
   }
 
   buildPaletteElement() {

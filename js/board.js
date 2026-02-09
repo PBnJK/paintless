@@ -6,6 +6,60 @@
 
 const CANVAS_WIDTH = 288;
 const CANVAS_HEIGHT = 48;
+const MAX_OFFSET =
+  CANVAS_WIDTH - 1 + (CANVAS_HEIGHT - 1) * CANVAS_WIDTH + (CANVAS_HEIGHT - 1);
+
+const UNDO_STACK_SIZE = 32;
+
+const DEFAULT_DRAWING = `                                                                                        ██████░░░░░░░░░░███    ▒▒▒▒▒    █████████████████████████████░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░█████                                                                                 
+                                                                                     ████░░░░░░░░░░░░░░░░░███      ██████       ▒                  █░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░████                                                                              
+                                                                                  ████░░░░░░░░░░░░░░░░░░░░░░██  ████ ▒▒▒      ███████████████████████░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░████                                                                           
+                                                                               ████░░░░░░░░░░░░░░░░░░░░░░░░░░████      ▒  █████                     ████░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░███                                                                         
+                                                                             ███░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░███      ████                            ██░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░███                                                                       
+                                                                            ██░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░███  ███                  ███████       ██░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░██                                                                      
+                                                                          ███░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░████                  ███     ██       █░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░██                                                                     
+                                                                         ██░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░██                                   ██░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░██                                                                    
+                       ▒▒▒▒▒▒▒▒   ▒▒▒▒▒▒▒▒▒▒▒                           ██░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░██                                    █░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░███                █           █                                     
+                     ▒▒▒      ▒▒▒▒▒         ▒▒▒▒▒▒▒▒▒▒                ███░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░██                                     █░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░██               █    ███   ██         ███                         
+            ▒▒▒▒▒▒▒▒▒▒                       ▒▒      ▒▒               █░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░█                                     ██░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░█               ██  ██ █████  ██ ███  ███     ██    █             
+           ▒▒                                         ▒              ██░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░█                      ████           █░░███████░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░██               ████         █    █    ███ █████ ███             
+           ▒                                          ▒▒▒▒▒▒        ██░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░█                         ████████    ████     █░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░██                           ██████      ███   ███               
+           ▒      note: quality of drawing is not          ▒▒       █░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░█                                              █░░░░░░░░░░░░░░░░░░░░░░████░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░█                                                               
+          ▒▒▒▒    demonstrative of the tool's full      ▒▒▒▒▒     ███░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░██                                        █    █░░░░░░░░░░░░░░░░░░░░░░█  ██░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░██                                                              
+        ▒▒▒       capabilities due to the programm        ▒▒      █░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░█                                             █░░░░░░░░░░░░░░░░░███████████████░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░█                                                              
+       ▒▒         er's total inability to draw             ▒▒    ██░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░██                          ███               █░░░░░░░░░░░░░█████░░░░░░░░░░░░░████░░░░░░░░░░░░░░░░░░░░░░░░░░░░░█                                                              
+       ▒                                                    ▒   ██░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░███                          ██     ██      ██░░░░░░░░░░████░░░░░░░░░░░░░░░░░░░░████░░░░░░░░░░░░░░░░░░░░░░░░░░█                                                              
+       ▒▒                                              ▒  ▒▒▒   █░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░██                          ███████     ███░░░░░░░░████░░░░░░░░░░░░░░░░░░░░░░░░░░████░░░░░░░░░░░░░░░░░░░░░░░█                                                              
+        ▒▒▒   ▒▒▒                             ▒▒▒     ▒▒        █░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░█                                    ███░░░░░░░░███░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░███░░░░░░░░░░░░░░░░░░░░░█                                                              
+          ▒▒▒▒▒ ▒▒▒         ▒▒▒▒▒          ▒▒▒▒ ▒▒▒▒▒▒▒         █░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░█                                 ████░░░░░░░░███░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░███░░░░░░░░░░░░░░░░░░░█                                                              
+                  ▒▒▒▒▒▒▒▒▒▒▒   ▒▒▒▒▒▒▒▒▒▒▒▒                    █░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░█                   ███        █████░░░░░░░░███░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░██░░░░░░░░░░░░░░░░░░█         cool!                                                
+                                                                █░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░█                   ▒▒██████████░░░░░░░░░░░██░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░██░░░░░░░░░░░░░░░░░█         ccool!                     cool!                     
+                                                                █░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░█                    ▒▒▒▒▒███░░░░░░░░░░░████░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░███████░░░░░░░░░░░░██         cool!        ccool!      ccool!                     
+                                                                █░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░█                     ▒▒▒▒▒▒█░░░░░░░░░░█  ████████░░░░░░░░░░░░░░░░░░░░░░░░░░░█████████████   ██░░░░░░░░░░░░░█         ccool!      ccccool!     cool!                      
+                                                                █░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░██                         ▒▒██░░░░░░░░░██        █████████████████████████████              ██░░░░░░░░░░░░░░█          ccool!    ccooccool!   ccool!                      
+                                                                █░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░█                             █░░░░░░░░░░████████            █████████████████           █████░░░░░░░░░░░░░░░█           cccool!cccool!ccool!cccool!                       
+                                                                █░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░██                             ██░░░░░░░░░░░░░░░░██████████████   █   ███  ██ █████████████░░░░░░░░░░░░░░░░░░░█             ccccccool!   ccccccool!                         
+                                                                ██░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░██                               █░░░░░░░░░░░░░░░░░░░░░░░░░█ █████ █     ████   █░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░█                                                             
+                                                                 █░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░████████                            ██░░░░░░░░░░░░░░░░░░░░░░░░█     ███            █░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░█                                                             
+                                                                 ████░░░░░░░░░░██░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░██      ██████████           ████████ █░░░░░░░░██░░░░░░░░░░░░░░█                    █░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░█                       cool!!                                
+                                                               ██▒▒▒▒▒███████████░░░░░░░░░░░░░░░░███░░░░░░░░░░██                ███████████   ████████████████ ██░░░░░░░░░░░░░█                    █░░░░░░░░░░░░░░░░░░░░░░░░░░░░░██                     cool!!cool!!!!!!!!!                     
+                                                               █▒▒▒▒▒▒▒▒▒▒▒▒▒▒██████████░░░░░░████████████░░█████        ████             ███████▒▒▒▒▒▒▒██      ██░░░░░░░░░░░░█                    █░░░░░░░░░░░░░░░░░░░░░░░░░░░░░█                     cool!!         cool!!                    
+                                                               █▒▒▒▒▒▒▒▒▒▒▒▒▒▒███ ██▒▒██░░░░░░█▒▒▒▒▒▒▒▒▒█████▒▒▒█████   ██▒▒█    ████████     █▒▒▒▒▒▒▒▒▒▒█       ██░░░██░░░░░░█                    █░░░░░░░░░░░░░░░░░░░░░░░░░░░░██                     cool!           cool!                    
+                                                               █▒▒▒▒▒▒███████████ █▒▒▒██░░░░░░█▒▒▒▒▒▒▒▒▒██ ██▒▒▒██  █████▒▒██   ██▒▒▒▒▒▒███   █▒▒▒████▒▒▒█    ██████░░██░░░░░░█                    █░░░░░░░░░░░░░░░░░░░░░░░░░░░░█                      cccool!        ccool!                    
+                                                                █▒▒▒▒▒▒█████████  █▒▒▒██░░░░░░█▒▒████▒▒▒▒█  ██▒▒▒██   ███▒█████████▒▒▒▒▒▒▒█████▒▒▒▒▒▒▒▒▒██ ████     ███░░░░░░░██████████████████████░░░░░░░░░░░░░░░░░░░░░░░░░░░░█                        ccccccccccccccool!                     
+                                                                █▒▒▒▒▒▒▒▒▒▒▒▒███  █▒▒▒██░░░░░░█▒▒▒▒██▒▒▒▒█   ██▒▒▒█  ██▒▒▒█   ██▒▒▒███▒▒▒▒▒█  █▒▒▒▒▒████████       ██░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░██                                                               
+                                                                █▒▒▒▒▒▒▒▒▒▒▒▒███  █▒▒▒██░░░░░░██▒▒▒▒▒▒▒▒▒██   █▒▒▒████▒▒▒██   █▒▒▒▒▒▒█▒▒▒▒▒█  █▒▒▒▒▒███           ██░░░░░░░░░░░░░░░░░░░░░███████░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░██                                                                
+                                                                █▒▒▒▒▒▒█████████  █▒▒▒██████████▒▒█████▒▒▒██  ██▒▒▒▒▒▒▒▒██    █▒▒▒▒▒▒▒▒▒▒▒██  █▒▒███▒▒███       ███░░░░░██████████░░░░████░░░░░█░░░░░░██████░░░░░░░░░░░░░░░░░██                                                                 
+                                                                ██▒▒▒█▒███        █▒▒▒▒▒▒▒▒▒██ █▒▒█   █▒▒▒▒██  ██▒▒▒▒▒▒▒█     ███▒▒▒▒▒█████  ██▒▒█ ███▒▒███    ██░░░░░░██░░░░░░░░█░░░░█░░░░░░░░░░░░░░░██░░░░░░░░░░░░░░░░░░░░░█                                                                  
+                                                                ██▒▒▒▒▒▒███       █▒▒▒▒▒▒▒████ ████   ███████   █████████       ███████      █████  ███████   ██░░░░░░░███████████░░░░████████████░░░░░█████████░░░░░░░░░░░░██                      ccool!                   ccool!             
+                                                                 ███▒▒▒▒▒██       ████████████                                                               ██░░░░░░░██░░░░░░░░░░░░██           ████░░░░░░░░░██░░░░░░░░░░░██                        ccool!    ccccool!     ccool!              
+                                                                  ████████                                                                                  ██░░░░░░░░███░░░░░░░░░███    ██      ██  ██████████░░░░░░░░░░░██                          cccool!cccoocccool! cccool!               
+                                                                                                                                                             ██░░░░░██  ███████████       ████████                █░░░░░░██                             ccccccool!  ccoolccool!                 
+                                                                                                                                                              ███████                                                 ░███                               ccool!      cccccool!                  
+                                                                                                                                                                                                                      ██                                                                        
+                                                                                                                                                                                                                                                                                                
+                                                                                                                                                                                                                                                                                                
+`;
 
 /**
  * The main drawing board class
@@ -50,6 +104,18 @@ class Board {
   #isDrawing = false;
 
   /**
+   * Mouse X position
+   * @type {number}
+   */
+  #mouseX = 0;
+
+  /**
+   * Mouse Y position
+   * @type {number}
+   */
+  #mouseY = 0;
+
+  /**
    * Old X-coordinate for continuous drawing
    * @type {number}
    */
@@ -62,6 +128,48 @@ class Board {
   #oldY = 0;
 
   /**
+   * Board info display
+   * @type {HTMLSpanElement}
+   */
+  #boardInfo = null;
+
+  /**
+   * Old board info message
+   * @type {string}
+   */
+  #oldBoardInfoMessage = null;
+
+  /**
+   * The undo button
+   * @type {HTMLButtonElement}
+   */
+  #undoButton = null;
+
+  /**
+   * The redo button
+   * @type {HTMLButtonElement}
+   */
+  #redoButton = null;
+
+  /**
+   * Undo stack
+   * @type {string[][]}
+   */
+  #undoStack = null;
+
+  /**
+   * Undo stack pointer
+   * @type {number}
+   */
+  #undoStackPointer = 0;
+
+  /**
+   * Occupied size of the undo stack
+   * @type {number}
+   */
+  #undoStackSize = 0;
+
+  /**
    * The current brush
    * @type {Brush}
    */
@@ -69,6 +177,9 @@ class Board {
 
   constructor() {
     this.#initBoard();
+    this.#initClear();
+    // this.#initUndoRedo();
+    this.#initSave();
   }
 
   /**
@@ -121,7 +232,16 @@ class Board {
    * @returns {number} Offset
    */
   xyToOffset(x, y) {
-    return x + y * CANVAS_WIDTH + y;
+    const offset = x + y * CANVAS_WIDTH + y;
+    if (offset > MAX_OFFSET) {
+      return MAX_OFFSET;
+    }
+
+    if (offset < 0) {
+      return 0;
+    }
+
+    return offset;
   }
 
   /**
@@ -216,28 +336,32 @@ class Board {
     this.#board = document.getElementById("board");
     this.#boardSelection = document.getSelection();
 
-    this.clear();
+    this.#boardInfo = document.getElementById("board-info");
+
+    this.#data = DEFAULT_DRAWING.split("");
+    this.blit();
 
     /* Calculate the dimensions of a single character (monospace font) */
     this.#charWidth = this.#board.offsetWidth / CANVAS_WIDTH;
     this.#charHeight = this.#board.offsetHeight / CANVAS_HEIGHT;
 
     /* Hack to disable text selection */
-    document.addEventListener("selectionchange", (e) => {
+    document.addEventListener("selectionchange", () => {
       this.#boardSelection.removeAllRanges();
       return false;
     });
 
     this.#board.addEventListener("mousemove", (e) => {
-      if (this.#isDrawing) {
-        const x = Math.floor(e.offsetX / this.#charWidth);
-        const y = Math.floor(e.offsetY / this.#charHeight);
+      this.#mouseX = Math.floor(e.offsetX / this.#charWidth);
+      this.#mouseY = Math.floor(e.offsetY / this.#charHeight);
+      this.#updateBoardInfo();
 
-        this.putLine(this.#oldX, this.#oldY, x, y);
+      if (this.#isDrawing) {
+        this.putLine(this.#oldX, this.#oldY, this.#mouseX, this.#mouseY);
         this.blit();
 
-        this.#oldX = x;
-        this.#oldY = y;
+        this.#oldX = this.#mouseX;
+        this.#oldY = this.#mouseY;
       }
     });
 
@@ -246,18 +370,143 @@ class Board {
       this.#oldX = Math.floor(e.offsetX / this.#charWidth);
       this.#oldY = Math.floor(e.offsetY / this.#charHeight);
 
-      this.#brush.draw(this.#oldX, this.#oldY, this);
+      const msg = this.#brush.draw(this.#oldX, this.#oldY, this);
       this.blit();
+
+      if (msg) {
+        this.#updateBoardInfo(msg);
+      }
 
       return false;
     });
 
-    this.#board.addEventListener("mouseup", (e) => {
+    this.#board.addEventListener("mouseup", () => {
+      this.#saveState();
       this.#isDrawing = false;
     });
 
-    this.#board.addEventListener("mouseleave", (e) => {
+    this.#board.addEventListener("mouseleave", () => {
       this.#isDrawing = false;
     });
+  }
+
+  /* Initializes the clear button */
+  #initClear() {
+    const clearButton = document.getElementById("btn-clear-board");
+    clearButton.addEventListener("click", () => {
+      this.#updateBoardInfo("cleared screen");
+      this.clear();
+    });
+  }
+
+  /* Initializes the undo-redo system */
+  #initUndoRedo() {
+    this.#undoStack = new Array(UNDO_STACK_SIZE);
+
+    this.#undoButton = document.getElementById("btn-undo-board");
+    this.#redoButton = document.getElementById("btn-redo-board");
+    this.#saveState();
+
+    this.#undoButton.disabled = true;
+    this.#redoButton.disabled = true;
+
+    this.#undoButton.addEventListener("click", () => {
+      if (this.#undoStackPointer === 0) {
+        this.#updateBoardInfo("nothing to undo!");
+        return;
+      }
+
+      this.#data = this.#undoStack[--this.#undoStackPointer];
+      this.blit();
+
+      console.log(
+        "undo",
+        this.#undoStackPointer,
+        this.#undoStackSize,
+        this.#undoStack,
+      );
+      if (this.#undoStackPointer === 0) {
+        this.#undoButton.disabled = true;
+      }
+
+      this.#redoButton.disabled = false;
+    });
+
+    this.#redoButton.addEventListener("click", () => {
+      if (this.#undoStackPointer === this.#undoStackSize) {
+        this.#updateBoardInfo("nothing to redo!");
+        return;
+      }
+
+      this.#data = this.#undoStack[this.#undoStackPointer++];
+      this.blit();
+
+      console.log(
+        "redo",
+        this.#undoStackPointer,
+        this.#undoStackSize,
+        this.#undoStack,
+      );
+      if (this.#undoStackPointer === this.#undoStackSize) {
+        this.#redoButton.disabled = true;
+      }
+
+      this.#undoButton.disabled = false;
+    });
+  }
+
+  /* Initializes the save system */
+  #initSave() {
+    const saveButton = document.getElementById("btn-save-board");
+
+    saveButton.addEventListener("click", () => {
+      const link = document.createElement("a");
+      link.setAttribute("download", "image.txt");
+      link.href = this.#createSaveTextFile();
+      document.body.appendChild(link);
+
+      window.requestAnimationFrame(() => {
+        link.click();
+        link.remove();
+      });
+    });
+  }
+
+  #createSaveTextFile() {
+    const blob = new Blob([this.#data.join("")], { type: "text/plain" });
+    const textFile = window.URL.createObjectURL(blob);
+
+    return textFile;
+  }
+
+  /* Updates the board info line */
+  #updateBoardInfo(boardInfoMessage) {
+    let msg = `X ${this.#mouseX}, Y ${this.#mouseY} | `;
+    if (boardInfoMessage) {
+      msg += boardInfoMessage;
+      this.#oldBoardInfoMessage = boardInfoMessage;
+    } else if (this.#oldBoardInfoMessage) {
+      msg += this.#oldBoardInfoMessage;
+    }
+
+    this.#boardInfo.innerText = msg;
+  }
+
+  /* Saves the state of the board for undo */
+  #saveState() {
+    /*
+    if (this.#undoStackPointer === UNDO_STACK_SIZE - 1) {
+      this.#undoStack.shift();
+      this.#undoStack.push(this.#data.slice());
+    } else {
+      this.#undoStack[this.#undoStackPointer++] = this.#data.slice();
+      if (this.#undoStackSize < this.#undoStackPointer) {
+        ++this.#undoStackSize;
+      }
+    }
+
+    console.log(this.#undoStack);
+    this.#undoButton.disabled = false;
+    */
   }
 }

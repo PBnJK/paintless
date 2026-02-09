@@ -12,10 +12,20 @@
     <script src="js/brushes/pencil.js"></script>
     <script src="js/brushes/eraser.js"></script>
     <script src="js/brushes/paintbucket.js"></script>
+    <script src="js/brushes/text.js"></script>
 
     <script src="js/script.js" defer></script>
   </head>
   <body>
+    <fieldset>
+      <legend>Mood Setter! 🎶</legend>
+      <audio
+        controls
+        loop
+        src="assets/mus_lets_paint.mp3"
+        type="audio/mpeg"
+      ></audio>
+    </fieldset>
     <fieldset>
       <legend>Drawing Board</legend>
       <table border>
@@ -23,6 +33,15 @@
           <tr>
             <td>
               <button id="btn-clear-board" type="button">Clear</button>
+              <!--<button id="btn-undo-board" type="button">Undo</button>
+              <button id="btn-redo-board" type="button">Redo</button>-->
+
+              <button id="btn-save-board" type="button">Save</button>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <span id="board-info">X 0, Y 0 |</span>
             </td>
           </tr>
           <tr>

@@ -130,6 +130,45 @@ class PaletteElement {
   }
 
   /**
+   * Adds a select parameter to the brush
+   *
+   * @param {string} name
+   * @param {object[]} options
+   */
+  addSelectParam(name, options) {
+    const label = this.#createLabel(name);
+
+    const select = document.createElement("select");
+    for (const obj of options) {
+      const option = document.createElement("option");
+      option.innerText = obj.text;
+      option.value = obj.value;
+
+      select.appendChild(option);
+    }
+
+    label.appendChild(select);
+    select.addEventListener("change", (e) => {
+      this.#brush.setParam(name, e.target.value);
+    });
+
+    return this.#addToElement(label);
+  }
+
+  /**
+   * Creates an option for a select parameter
+   *
+   * @param {string} text
+   * @param {string} value
+   */
+  createOption(text, value) {
+    return {
+      text: text,
+      value: value,
+    };
+  }
+
+  /**
    * Adds a a "color" picker to the brush
    *
    * @param {string} name
